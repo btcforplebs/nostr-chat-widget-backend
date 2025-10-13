@@ -1779,6 +1779,15 @@
         
         async function loadDMs() {
             console.log('📬 Subscribing to DMs...');
+            console.log('🚀 Starting DM sync...');
+            showStatus('Syncing new messages...', 'info');
+            const overlay = document.querySelector('.loading-overlay');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                const msg = overlay.querySelector('div:nth-child(2)');
+                if (msg) msg.textContent = 'Syncing messages...';
+            }
+            let pendingDecrypts = 0;
             console.log('Current relays:', currentRelays);
             console.log('User pubkey:', userPubkey);
             console.log('Last sync timestamp:', lastSyncTimestamp, '(' + new Date(lastSyncTimestamp * 1000).toLocaleString() + ')');
@@ -1804,10 +1813,13 @@
                     onevent: async (event) => {
                         eventCount++;
                         console.log('📨 Received DM event #' + eventCount + ':', event.id, 'created:', new Date(event.created_at * 1000).toLocaleString());
-                        
+                        pendingDecrypts++;
                         const wasNew = await processDM(event);
-                        if (wasNew) newMessagesReceived = true;
-                        
+                        pendingDecrypts--;
+                        if (wasNew) {
+                            newMessagesReceived = true;
+                            console.log(`💬 New message from ${event.pubkey.slice(0, 12)}...`);
+                        }
                         // Update last sync timestamp to the most recent event
                         if (event.created_at > lastSyncTimestamp) {
                             lastSyncTimestamp = event.created_at;
@@ -1815,8 +1827,10 @@
                         }
                     },
                     oneose: () => {
-                        console.log('✅ DM subscription complete - received ' + eventCount + ' events');
-                        
+                        console.log('⏹️ Relay signaled end of stored events. Waiting for pending decryptions...');
+                        // Remove old overlay removal/status lines
+                        // document.querySelector('.loading-overlay')?.remove();
+                        // showStatus('Up to date', 'success');
                         // After initial sync, update timestamp to NOW so we're current
                         // This ensures we don't re-fetch messages we just received
                         const now = Math.floor(Date.now() / 1000);
@@ -1824,21 +1838,24 @@
                             lastSyncTimestamp = now;
                             console.log('Updated lastSyncTimestamp to current time:', now);
                         }
-                        
                         renderConversations();
-                        document.querySelector('.loading-overlay')?.remove();
-                        
-                        // Save cache with updated timestamp
-                        saveMessagesToCache(userPubkey);
-                        
-                        if (newMessagesReceived) {
-                            showStatus(eventCount > 0 ? `Synced ${eventCount} new messages` : 'Up to date', 'success');
-                        } else {
-                            showStatus('Up to date', 'success');
-                        }
-                        
-                        // Fetch profiles for all conversations
-                        fetchAllProfiles();
+                        const checkCompletion = setInterval(() => {
+                            i        f (pendingDecrypts === 0) {
+                                clearInterval(checkCompletion);
+                                console.log('✅ All messages processed, updating cache...');
+                                saveMessagesToCache(userPubkey);
+                                if (overlay) overlay.classList.add('hidden');
+                                showStatus(eventCount > 0 ? `Synced ${eventCount} messages` : 'Up to date', 'success');
+                                // Fetch profiles for all conversations
+                                fetchAllProfiles();
+                            } else {
+                                console.log(`⏳ Waiting for ${pendingDecrypts} pending decryptions...`);
+                                if (overlay) {
+                                    const msg = overlay.querySelector('div:nth-child(2)');
+                                    if (msg) msg.textContent = `Decrypting ${pendingDecrypts} messages...`;
+                                }
+                            }
+                        }, 300);
                     }
                 }
             );
