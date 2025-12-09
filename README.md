@@ -1,8 +1,13 @@
 # Nostr Chat Widget Backend
 
-A minimal backend/front-end runner for the Nostr Chat Widget. This repository provides a simple HTML host page (`index.html`) that loads and displays the Nostr chat widget so you can embed it anywhere.
+This repository provides the minimal hosting layer for the [nostr-chat-widget](https://github.com/btcforplebs/nostr-chat-widget).  
+It serves a simple `index.html` file that loads the widget, configures it, and makes it easy to embed on any website.
 
-## How to Use
+If you are using **nostr-chat-widget**, this repo acts as your “drop-in host” or example backend.
+
+---
+
+## 🚀 Quick Start
 
 ### 1. Clone the repo
 ```bash
@@ -10,62 +15,113 @@ git clone https://github.com/btcforplebs/nostr-chat-widget-backend.git
 cd nostr-chat-widget-backend
 ```
 
-### 2. Serve `index.html`
-You can host it **anywhere** that can serve static files:
+### 2. Open or host `index.html`
 
-- Nginx  
-- Apache  
-- GitHub Pages  
-- Cloudflare Pages  
-- Vercel / Netlify  
-- Or simply open `index.html` locally while testing
+You can:
+- open it locally in a browser, or  
+- deploy it to any static host (Vercel, Netlify, Cloudflare Pages, GitHub Pages, Nginx, etc.)
 
-### 3. Configure your widget
-Inside `index.html`, you’ll see script tags for loading the Nostr Chat Widget.  
-If the widget has configurable options (relays, pubkey, chat room ID), you can set them in the JS snippet.
+There is **no backend server** required unless you want to add one.
 
-Example:
+---
+
+## ⚙️ How It Works
+
+`index.html` loads the Nostr Chat Widget script and initializes it.
+
+A minimal version looks like:
+
 ```html
+<script src="https://unpkg.com/nostr-chat-widget"></script>
+
+<div id="nostr-chat"></div>
+
 <script>
-  new NostrChatWidget({
-    relay: "wss://relay.damus.io",
-    pubkey: "your_widget_pubkey_here"
+  NostrChatWidget.mount("#nostr-chat", {
+    relays: ["wss://relay.damus.io"],
+    channel: "global",
+    theme: "light"
   });
 </script>
 ```
 
-(Adjust to whatever configuration your widget requires.)
+You can modify all widget options directly inside `index.html`.
 
-### 4. Embed into your site (optional)
-If you want to put the widget on another webpage, copy the embed snippet from `index.html` into your site.
+---
 
-Example:
+## 🧩 Embedding on Your Website
+
+Once deployed, you can embed the widget into ANY site via an iframe:
+
 ```html
-<div id="nostr-chat-widget"></div>
-
-<script src="https://your-host.com/nostr-chat-widget.js"></script>
-<script>
-  NostrChatWidget.mount("#nostr-chat-widget");
-</script>
+<iframe
+  src="https://yourdomain.com/index.html"
+  style="width: 100%; height: 600px; border: 0;"
+></iframe>
 ```
 
-### 5. Deploy
-Once `index.html` is online, the chat widget is active anywhere that page is loaded.
+OR by copying the initialization snippet from `index.html` into your site.
 
-## Customizing
+---
 
-- Edit the HTML/CSS directly in `index.html`
-- Replace relay URLs
-- Add branding or custom positioning
-- Wrap it in an iframe if you want to embed it cleanly on external websites
+## 🎛️ Configure Your Widget
 
-## Folder Structure
+Any configuration supported by `nostr-chat-widget` is valid here:
+
+- relay list  
+- channel / room  
+- pubkey identity  
+- themes  
+- position in page  
+- custom CSS  
+
+Just edit the `<script>` in `index.html`.
+
+---
+
+## 📁 Project Structure
 
 ```
 nostr-chat-widget-backend/
-└── index.html   # Main host file that loads the chat widget
+└── index.html    # Loads and configures the chat widget
 ```
 
-## Purpose
+---
 
-This repo acts as a tiny “backend host” so you can self-host the Nostr chat widget and embed it in your own applications without needing a full server.
+## 📦 Deploying
+
+This project is **static**, so deployment is trivial:
+
+```
+# Example: Cloudflare Pages
+Drag & drop the folder → done
+```
+
+or
+
+```
+# Example: Nginx
+cp index.html /var/www/your-site/
+```
+
+Once `index.html` is online, the widget is live.
+
+---
+
+## 📝 Purpose
+
+This repo exists to give developers a ready-to-use hosting entry point for `nostr-chat-widget`.  
+Use it as:
+
+- a standalone hosted chat page  
+- an embeddable iframe target  
+- a template for integrating the widget into your own app  
+
+---
+
+If you want, I can also provide:
+
+✅ full documented config options  
+✅ an iframe-safe index.html version  
+✅ a version with dark/light theme switching  
+Just tell me what you need.
